@@ -113,8 +113,63 @@ SELECT cli.id_cliente, CONCAT(pes.nome, " ", pes.sobrenome) AS nome_completo, CO
 		ON cli.id_cliente = ped.id_cliente
 	INNER JOIN pessoas pes
 		ON cli.id_pessoa = pes.id_pessoa
-		GROUP BY cli.id_cliente;
+	GROUP BY cli.id_cliente;
 
+-- Seleciona todos os produtos em pedidos com quantidade maior que 2
+SELECT p.id_produto, p.nome, p.descricao, p.preco, ptp.quantidade 
+	FROM produtos p
+	JOIN pedido_tem_produto ptp
+		ON p.id_produto = ptp.id_produto
+	WHERE ptp.quantidade > 2;
 
+-- Seleciona todas as pessoas que são funcionários
+SELECT pessoas.* 
+	FROM pessoas
+	JOIN funcionarios 
+    ON pessoas.id_pessoa = funcionarios.id_pessoa;
 
+-- Seleciona o departamento com o maior número de funcionários
+SELECT departamentos.*, COUNT(funcionarios.id_funcionario) AS num_funcionarios 
+	FROM departamentos
+	INNER JOIN funcionarios 
+		ON departamentos.id_departamento = funcionarios.id_departamento
+	GROUP BY departamentos.id_departamento
+	ORDER BY num_funcionarios DESC LIMIT 1;
 
+-- Seleciona todos os pedidos e o valor total dos produtos em cada pedido
+SELECT p.*, SUM(prod.preco * ptp.quantidade) AS valor_total_produtos 
+	FROM pedidos p
+	JOIN pedido_tem_produto ptp
+		ON p.id_pedido = ptp.id_pedido
+	JOIN produtos prod
+		ON ptp.id_produto = prod.id_produto
+	GROUP BY p.id_pedido;
+
+-- Seleciona todas as pessoas que têm telefone residencial
+SELECT pessoas.* 
+	FROM pessoas
+	JOIN telefones 
+		ON pessoas.id_pessoa = telefones.id_pessoa
+	WHERE telefones.tipo = 'Residencial';
+
+-- Seleciona os produtos que nunca foram pedidos
+SELECT * 
+	FROM produtos 
+	WHERE id_produto NOT IN (
+		SELECT id_produto FROM pedido_tem_produto);
+
+-- Seleciona os clientes que fizeram mais de 3 pedidos
+SELECT c.*, COUNT(p.id_pedido) AS num_pedidos 
+	FROM clientes c
+		JOIN pedidos p
+			ON c.id_cliente = p.id_cliente
+		GROUP BY c.id_cliente
+		HAVING num_pedidos > 3;
+
+-- Seleciona os produtos mais pedidos
+SELECT produtos.*, SUM(pedido_tem_produto.quantidade) AS total_quantidade 
+	FROM produtos
+	JOIN pedido_tem_produto 
+		ON produtos.id_produto = pedido_tem_produto.id_produto
+	GROUP BY produtos.id_produto
+	ORDER BY total_quantidade DESC LIMIT 5;
